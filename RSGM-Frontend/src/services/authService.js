@@ -216,14 +216,6 @@ function getErrorMessage(data, fallback) {
     return data;
   }
 
-  if (data.message) {
-    return data.message;
-  }
-
-  if (data.error) {
-    return data.error;
-  }
-
   if (
     Array.isArray(data.errors) &&
     data.errors.length > 0
@@ -238,6 +230,14 @@ function getErrorMessage(data, fallback) {
     return Object.values(data.errors)
       .flat()
       .join(" ");
+  }
+
+  if (data.message) {
+    return data.message;
+  }
+
+  if (data.error) {
+    return data.error;
   }
 
   return fallback;

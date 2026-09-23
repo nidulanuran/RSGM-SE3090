@@ -7,6 +7,9 @@ import {
   MapPin,
   Send,
   Users,
+  Sparkles,
+  Bot,
+  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -15,6 +18,14 @@ import {
   submitRequisition,
   updateRequisition,
 } from "../../services/recruiterRequisitionService";
+
+import {
+  analyzeRequisitionWithHrAgent,
+  submitRequisitionWithHrApprovalGate,
+  getHrRequisitionAgentStatus,
+} from "../../services/hrRequisitionAgentService";
+
+import HrRequisitionAgentDossierModal from "../../components/hr/HrRequisitionAgentDossierModal";
 
 const initialForm = {
   positionTitle: "",
@@ -96,6 +107,60 @@ export default function RequisitionsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // HR Agent state
+  const [agentWorkflow, setAgentWorkflow] = useState(null);
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [agentLoadingId, setAgentLoadingId] = useState(null);
+
+  async function handleRunAgentAnalysis(id) {
+    setAgentLoadingId(id);
+    setError("");
+    try {
+      const workflow = await analyzeRequisitionWithHrAgent(id);
+      setAgentWorkflow(workflow);
+      setIsDossierOpen(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAgentLoadingId(null);
+    }
+  }
+
+  async function handleSubmitWithApprovalGate(id) {
+    const confirmed = window.confirm(
+      "Submit requisition through AI Agent with mandatory HR Approval Gate?"
+    );
+    if (!confirmed) return;
+
+    setAgentLoadingId(id);
+    setError("");
+    try {
+      const workflow = await submitRequisitionWithHrApprovalGate(id);
+      setAgentWorkflow(workflow);
+      setIsDossierOpen(true);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAgentLoadingId(null);
+    }
+  }
+
+  async function handleViewAgentDossier(id) {
+    setAgentLoadingId(id);
+    setError("");
+    try {
+      const workflow = await getHrRequisitionAgentStatus(id);
+      setAgentWorkflow(workflow);
+      setIsDossierOpen(true);
+    } catch (err) {
+      // If none found, run analysis
+      handleRunAgentAnalysis(id);
+    } finally {
+      setAgentLoadingId(null);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -926,36 +991,60 @@ export default function RequisitionsPage() {
                       </div>
                     )}
 
-                    {editable && (
-                      <div className="mt-5 flex flex-wrap gap-3">
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                      {editable && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => startEdit(item)}
+                            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={agentLoadingId === item.id}
+                            onClick={() => handleRunAgentAnalysis(item.id)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-2.5 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+                          >
+                            <Sparkles size={16} />
+                            {agentLoadingId === item.id ? "Analyzing..." : "AI Readiness Check"}
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={agentLoadingId === item.id}
+                            onClick={() => handleSubmitWithApprovalGate(item.id)}
+                            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 shadow-xs"
+                          >
+                            <ShieldCheck size={16} />
+                            Submit with AI Gate
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSubmit(item.id)}
+                            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+                          >
+                            <Send size={16} />
+                            {status === "Rejected" ? "Resubmit to HR" : "Standard Submit"}
+                          </button>
+                        </>
+                      )}
+
+                      {!editable && (
                         <button
                           type="button"
-                          onClick={() =>
-                            startEdit(item)
-                          }
-                          className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                          disabled={agentLoadingId === item.id}
+                          onClick={() => handleViewAgentDossier(item.id)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
-                          Edit
+                          <Bot size={16} className="text-indigo-600" />
+                          {agentLoadingId === item.id ? "Loading..." : "View AI Agent Dossier"}
                         </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleSubmit(
-                              item.id
-                            )
-                          }
-                          className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
-                        >
-                          <Send size={16} />
-
-                          {status ===
-                          "Rejected"
-                            ? "Resubmit to HR"
-                            : "Submit to HR"}
-                        </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -963,6 +1052,13 @@ export default function RequisitionsPage() {
           )}
         </div>
       </div>
+
+      {/* HR Agent Dossier Modal */}
+      <HrRequisitionAgentDossierModal
+        isOpen={isDossierOpen}
+        onClose={() => setIsDossierOpen(false)}
+        workflow={agentWorkflow}
+      />
     </div>
   );
 }

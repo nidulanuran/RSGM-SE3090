@@ -9,6 +9,10 @@ import {
   MapPin,
   UserRound,
   XCircle,
+  Sparkles,
+  Bot,
+  ShieldCheck,
+  Cpu,
 } from "lucide-react";
 
 import {
@@ -16,6 +20,14 @@ import {
   getHrRequisitions,
   rejectRequisition,
 } from "../../services/hrRequisitionService";
+
+import {
+  analyzeRequisitionWithHrAgent,
+  decideHrApprovalGate,
+  getHrRequisitionAgentStatus,
+} from "../../services/hrRequisitionAgentService";
+
+import HrRequisitionAgentDossierModal from "../../components/hr/HrRequisitionAgentDossierModal";
 
 const employmentTypeLabels = {
   0: "Full Time",
@@ -92,6 +104,49 @@ export default function RequisitionApprovalsPage() {
 
   const [processingId, setProcessingId] =
     useState(null);
+
+  // HR Agent state
+  const [agentWorkflow, setAgentWorkflow] = useState(null);
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [selectedRequisitionId, setSelectedRequisitionId] = useState(null);
+  const [agentLoadingId, setAgentLoadingId] = useState(null);
+
+  async function handleOpenAgentDossier(id) {
+    setSelectedRequisitionId(id);
+    setAgentLoadingId(id);
+    setError("");
+    try {
+      let workflow = null;
+      try {
+        workflow = await getHrRequisitionAgentStatus(id);
+      } catch {
+        // If not analyzed yet, run analysis
+        workflow = await analyzeRequisitionWithHrAgent(id);
+      }
+      setAgentWorkflow(workflow);
+      setIsDossierOpen(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAgentLoadingId(null);
+    }
+  }
+
+  async function handleAgentDecision(decisionCode, comment) {
+    if (!selectedRequisitionId) return;
+    setProcessingId(selectedRequisitionId);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await decideHrApprovalGate(selectedRequisitionId, decisionCode, comment);
+      setSuccess(res.message || "Decision successfully processed.");
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProcessingId(null);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -598,7 +653,17 @@ export default function RequisitionApprovalsPage() {
                       {/* Actions */}
                       {isSubmitted && (
                         <section className="border-t border-slate-100 pt-6">
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              disabled={agentLoadingId === item.id}
+                              onClick={() => handleOpenAgentDossier(item.id)}
+                              className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/80 px-5 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100 shadow-xs"
+                            >
+                              <Sparkles size={17} className="text-indigo-600" />
+                              {agentLoadingId === item.id ? "Auditing with AI..." : "View AI Readiness Dossier"}
+                            </button>
+
                             <button
                               type="button"
                               disabled={
@@ -750,6 +815,20 @@ export default function RequisitionApprovalsPage() {
                           </div>
                         </section>
                       )}
+
+                      {!isSubmitted && (
+                        <div className="border-t border-slate-100 pt-4 flex justify-end">
+                          <button
+                            type="button"
+                            disabled={agentLoadingId === item.id}
+                            onClick={() => handleOpenAgentDossier(item.id)}
+                            className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-700 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition"
+                          >
+                            <Bot size={14} />
+                            {agentLoadingId === item.id ? "Loading AI..." : "View AI Audit Dossier"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </article>
                 );
@@ -758,6 +837,15 @@ export default function RequisitionApprovalsPage() {
           )}
         </section>
       </div>
+
+      {/* HR Agent Dossier Modal */}
+      <HrRequisitionAgentDossierModal
+        isOpen={isDossierOpen}
+        onClose={() => setIsDossierOpen(false)}
+        workflow={agentWorkflow}
+        onDecision={handleAgentDecision}
+        isHrManager={true}
+      />
     </div>
   );
 }
