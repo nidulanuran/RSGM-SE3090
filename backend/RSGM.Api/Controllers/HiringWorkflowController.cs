@@ -48,7 +48,7 @@ public class HiringWorkflowController : ControllerBase
     {
         var local = TimeZoneInfo.ConvertTime(when, _officeTimeZone);
         return local.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday) &&
-            local.TimeOfDay >= TimeSpan.FromHours(9) &&
+            local.TimeOfDay >= TimeSpan.FromHours(8) &&
             local.TimeOfDay + TimeSpan.FromMinutes(InterviewDurationMinutes) <= TimeSpan.FromHours(17);
     }
 

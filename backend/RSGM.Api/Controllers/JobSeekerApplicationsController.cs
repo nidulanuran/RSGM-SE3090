@@ -30,13 +30,15 @@ public class JobSeekerApplicationsController : ControllerBase
             return Unauthorized();
         }
 
-        var applications = await _applicationService.GetByUserIdAsync(userId.Value);
+        var applications =
+            await _applicationService.GetByUserIdAsync(userId.Value);
 
         return Ok(applications);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Apply(CreateApplicationRequest request)
+    public async Task<IActionResult> Apply(
+        CreateApplicationRequest request)
     {
         var userId = GetCurrentUserId();
 
@@ -45,20 +47,27 @@ public class JobSeekerApplicationsController : ControllerBase
             return Unauthorized();
         }
 
-        var (result, application) = await _applicationService.CreateAsync(userId.Value, request);
+        var (result, application) =
+            await _applicationService.CreateAsync(userId.Value, request);
 
         return result switch
         {
             CreateApplicationResult.Success => Ok(application),
+
             CreateApplicationResult.AlreadyApplied => Conflict(new
             {
                 message = "You've already applied to this job."
             }),
+
             CreateApplicationResult.JobNotFound => NotFound(new
             {
                 message = "This job posting is no longer available."
             }),
-            _ => BadRequest()
+
+            _ => BadRequest(new
+            {
+                message = "Unable to submit the application."
+            })
         };
     }
 
@@ -72,23 +81,38 @@ public class JobSeekerApplicationsController : ControllerBase
             return Unauthorized();
         }
 
-        var withdrawn = await _applicationService.WithdrawAsync(userId.Value, id);
+        var result =
+            await _applicationService.WithdrawAsync(userId.Value, id);
 
-        if (!withdrawn)
+        return result switch
         {
-            return NotFound(new
-            {
-                message = "Application not found or already withdrawn."
-            });
-        }
+            WithdrawApplicationResult.Success => NoContent(),
 
-        return NoContent();
+            WithdrawApplicationResult.NotFound => NotFound(new
+            {
+                message = "Application not found."
+            }),
+
+            WithdrawApplicationResult.NotUnderReview => Conflict(new
+            {
+                message =
+                    "Only applications that are under review can be withdrawn."
+            }),
+
+            _ => BadRequest(new
+            {
+                message = "Unable to withdraw this application."
+            })
+        };
     }
 
     private Guid? GetCurrentUserId()
     {
-        var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var idClaim =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return Guid.TryParse(idClaim, out var id) ? id : null;
+        return Guid.TryParse(idClaim, out var id)
+            ? id
+            : null;
     }
 }

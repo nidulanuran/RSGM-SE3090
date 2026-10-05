@@ -24,6 +24,8 @@ export default function MyInterviewsPage() {
   const [choice, setChoice] = useState("yes");
   const [rationale, setRationale] = useState("");
   const [busy, setBusy] = useState(false);
+  const [rescheduleFor, setRescheduleFor] = useState(null);
+  const [newSlot, setNewSlot] = useState("");
   const refresh = useCallback(async () => { const [sessions, recommendations] = await Promise.all([getPanelistInterviews(), getPanelistRecommendations()]); setInterviews(sessions); setDecisions(recommendations); }, []);
   useEffect(() => {
     let cancelled = false;
@@ -66,12 +68,50 @@ export default function MyInterviewsPage() {
     try {
       const slots = await getAvailableSlots(i.jobPostingId, i.hrManagerId);
       const choices = slots.filter((slot) => slot !== i.scheduledAt);
-      if (!choices.length) { setError("No other free office-hour slots are available. Check each participant's busy schedule."); return; }
-      const details = choices.map((slot, index) => `${index + 1}. ${new Date(slot).toLocaleString()}`).join("\n");
-      const choice = Number(window.prompt(`Select a new shared slot by number:\n${details}`));
-      if (choice >= 1 && choice <= choices.length) await act(() => changeInterviewTime(i.id, choices[choice - 1]));
-    } catch (e) { setError(e.message); }
+
+      if (!choices.length) {
+        setError(
+          "No other free office-hour slots are available. Check each participant's busy schedule.",
+        );
+        return;
+      }
+
+      setRescheduleFor({
+        interview: i,
+        choices,
+      });
+
+      setNewSlot(choices[0]);
+    } catch (e) {
+      setError(e.message);
+    }
   }
+
+  async function submitReschedule(e) {
+    e.preventDefault();
+
+    if (!rescheduleFor || !newSlot) return;
+
+    setBusy(true);
+    setError("");
+
+    try {
+      await changeInterviewTime(
+        rescheduleFor.interview.id,
+        newSlot,
+      );
+
+      await refresh();
+
+      setRescheduleFor(null);
+      setNewSlot("");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submitRecommendation(e) {
     e.preventDefault();
     setBusy(true); setError("");
@@ -108,6 +148,111 @@ export default function MyInterviewsPage() {
       </div>)}
     </div>
     {recommendFor && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 p-4"><form onSubmit={submitRecommendation} className="w-full max-w-lg space-y-4 rounded-3xl bg-white p-6 shadow-2xl"><div className="flex items-start justify-between"><div><h2 className="text-xl font-semibold">Recommendation to HR</h2><p className="mt-1 text-sm text-neutral-500">{recommendFor.candidate} · {recommendFor.job}</p></div><button type="button" aria-label="Close" onClick={() => setRecommendFor(null)}>✕</button></div><label className="block text-sm font-medium">Decision<select className="mt-2 w-full rounded-xl border border-neutral-200 p-3" value={choice} onChange={(e) => setChoice(e.target.value)}><option value="yes">Recommend</option><option value="no">Do not recommend</option></select></label><label className="block text-sm font-medium">Rationale<textarea required maxLength={2000} rows={5} value={rationale} onChange={(e) => setRationale(e.target.value)} className="mt-2 w-full rounded-xl border border-neutral-200 p-3" /></label><button disabled={busy || !rationale.trim()} className="w-full rounded-xl bg-amber-600 py-3 text-sm font-semibold text-white disabled:opacity-50">Submit to HR</button></form></div>}
+    {rescheduleFor && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 p-4 backdrop-blur-sm"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget && !busy) {
+            setRescheduleFor(null);
+            setNewSlot("");
+          }
+        }}
+      >
+        <form
+          onSubmit={submitReschedule}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Reschedule interview"
+          className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl sm:p-8"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase text-amber-600">
+                Reschedule interview
+              </p>
+
+              <h2 className="mt-1 text-xl font-semibold">
+                Select a new interview time
+              </h2>
+
+              <p className="mt-2 text-sm text-neutral-500">
+                {rescheduleFor.interview.candidate} ·{" "}
+                {rescheduleFor.interview.job}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Close"
+              disabled={busy}
+              onClick={() => {
+                setRescheduleFor(null);
+                setNewSlot("");
+              }}
+              className="text-neutral-500"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mt-6 rounded-2xl bg-amber-50 p-4">
+            <p className="text-xs font-semibold uppercase text-amber-700">
+              Current interview time
+            </p>
+
+            <p className="mt-1 text-sm font-medium text-neutral-800">
+              {new Date(
+                rescheduleFor.interview.scheduledAt,
+              ).toLocaleString()}
+            </p>
+          </div>
+
+          <label className="mt-5 block text-sm font-medium">
+            Available shared slot
+
+            <select
+              value={newSlot}
+              onChange={(e) => setNewSlot(e.target.value)}
+              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm outline-none focus:border-amber-400"
+            >
+              {rescheduleFor.choices.map((slot) => (
+                <option key={slot} value={slot}>
+                  {new Date(slot).toLocaleString()}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <p className="mt-3 text-xs text-neutral-500">
+            These available times consider the shared schedules of the recruiter,
+            HR manager, and hiring panelist.
+          </p>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setRescheduleFor(null);
+                setNewSlot("");
+              }}
+              className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={busy || !newSlot}
+              className="rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              {busy ? "Rescheduling…" : "Confirm new time"}
+            </button>
+          </div>
+        </form>
+      </div>
+    )}
+
     {selected && <FeedbackDialog key={selected.id} interview={selected} busy={busy} onClose={() => setSelected(null)} onSubmit={(feedback) => submit(selected.id, feedback)} />}
     {viewing && <CandidateDialog key={viewing.id} interview={viewing} onClose={() => setViewing(null)} onFeedback={() => { setSelected(viewing); setViewing(null); }} />}
   </div>;

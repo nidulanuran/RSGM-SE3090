@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using RSGM.Api.Data;
 using RSGM.Api.Models.Entities;
 using RSGM.Api.Services;
+using RSGM.Api.Services.Agents.SkillMatchingShortlisting;
+using RSGM.Api.Services.Agents.InterviewSchedulingCoordinationAgent;
 using RSGM.Api.Services.HrAgenticServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,17 +25,13 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(
-        "ReactFrontend",
-        policy =>
-        {
-            policy
-                .WithOrigins(
-                    "http://localhost:5173"
-                )
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
+    options.AddPolicy("DevelopmentCors", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
 
@@ -91,6 +89,10 @@ var connectionString =
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+builder.Services.AddSkillMatchingShortlistingAgent(
+    builder.Configuration,
+    connectionString);
 
 
 // ======================================================
@@ -245,6 +247,20 @@ builder.Services.AddScoped<JobPostingService>();
 
 builder.Services.AddScoped<JobSeekerApplicationService>();
 
+builder.Services.AddHttpClient<RSGM.Api.Agents.Coordinator.ApplicationReadinessService>(client =>
+{
+    var baseUrl = builder.Configuration["AgentService:BaseUrl"] ?? "http://127.0.0.1:8001";
+    client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
+builder.Services.AddHttpClient<RSGM.Api.Agents.Coordinator.JobSeekerCareerWorkflowService>(client =>
+{
+    var baseUrl = builder.Configuration["AgentService:BaseUrl"] ?? "http://127.0.0.1:8001";
+    client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(45);
+});
+
 builder.Services.AddScoped<JobSeekerDashboardService>();
 
 builder.Services.AddScoped<JobSeekerAccountService>();
@@ -256,13 +272,17 @@ builder.Services.AddScoped<AdminDashboardService>();
 builder.Services.AddScoped<AdminCompanyService>();
 
 builder.Services.AddScoped<RecruiterJobPostingService>();
+builder.Services.AddScoped<RecruiterApplicantService>();
 
 builder.Services.AddScoped<JobRequisitionService>();
 
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<
+    IInterviewAvailabilityService,
+    InterviewAvailabilityService>();
 
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 // ======================================================
-// 7.1 AGENTIC AI (HR FUNCTIONS - COMPONENT A)
+// AGENTIC AI (HR FUNCTIONS)
 // ======================================================
 builder.Services.AddHttpClient<IHrAiCompletionService, HrGeminiOrFallbackAiService>(client =>
 {
@@ -277,6 +297,14 @@ builder.Services.AddScoped<IHrAgentTool, HrCreateApprovalRequestTool>();
 
 builder.Services.AddScoped<HrJobRequisitionAgent>();
 builder.Services.AddScoped<HrWorkflowCoordinator>();
+
+// ======================================================
+// INTERVIEW SCHEDULING & COORDINATION AGENT
+// ======================================================
+builder.Services.AddInterviewSchedulingCoordinationAgent(
+    builder.Configuration,
+    connectionString);
+
 
 
 
@@ -328,7 +356,7 @@ app.UseHttpsRedirection();
 // IMPORTANT:
 // Authentication must come BEFORE Authorization.
 
-app.UseCors("ReactFrontend");
+app.UseCors("DevelopmentCors");
 
 app.UseAuthentication();
 
@@ -380,3 +408,4 @@ await CompanyBackfillSeeder.SeedAsync(
 // ======================================================
 
 app.Run();
+

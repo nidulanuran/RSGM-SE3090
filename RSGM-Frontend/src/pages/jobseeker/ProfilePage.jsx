@@ -50,6 +50,8 @@ function ProfilePage() {
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const profileBeforeEditRef = useRef(null);
 
   const [skills, setSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
@@ -186,6 +188,24 @@ function ProfilePage() {
     setSaved(false);
   };
 
+  const beginProfileEdit = () => {
+    profileBeforeEditRef.current = { ...profile };
+    setSaveError("");
+    setSaved(false);
+    setIsEditingProfile(true);
+  };
+
+  const cancelProfileEdit = () => {
+    if (profileBeforeEditRef.current) {
+      setProfile(profileBeforeEditRef.current);
+    }
+
+    profileBeforeEditRef.current = null;
+    setSaveError("");
+    setSaved(false);
+    setIsEditingProfile(false);
+  };
+
   const handleSaveProfile = async () => {
     setSaveError("");
 
@@ -216,6 +236,8 @@ function ProfilePage() {
         gitHubUrl: updated.gitHubUrl ?? "",
         portfolioUrl: updated.portfolioUrl ?? "",
       });
+      profileBeforeEditRef.current = null;
+      setIsEditingProfile(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
@@ -530,10 +552,31 @@ function ProfilePage() {
         Keep your details, CV, and skills up to date for the best job matches.
       </p>
 
-      {/* ================= PERSONAL DETAILS ================= */}
+      <div className="mt-8 grid gap-6 xl:grid-cols-2 xl:items-start">
+        {/* ================= PERSONAL DETAILS ================= */}
 
-      <div className="mt-8 rounded-2xl border border-white/70 bg-white/75 backdrop-blur-2xl shadow-xl shadow-neutral-200/30 p-6 max-w-2xl">
-        <h2 className="text-lg font-semibold tracking-tight">Personal details</h2>
+        <div className="rounded-2xl border border-white/70 bg-white/75 backdrop-blur-2xl shadow-xl shadow-neutral-200/30 p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Personal details</h2>
+            <p className="mt-1 text-xs text-neutral-400">
+              {isEditingProfile
+                ? "Edit your details, then save or cancel your changes."
+                : "Click Edit to update your personal details."}
+            </p>
+          </div>
+
+          {!isLoading && !loadError && !isEditingProfile && (
+            <button
+              type="button"
+              onClick={beginProfileEdit}
+              className="h-10 px-4 rounded-xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-700 flex items-center gap-2 hover:bg-neutral-50 active:scale-[0.99] transition"
+            >
+              <Pencil size={15} />
+              Edit
+            </button>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="mt-6 flex items-center gap-2 text-sm text-neutral-400">
@@ -553,7 +596,8 @@ function ProfilePage() {
                   value={profile.fullName}
                   maxLength={100}
                   onChange={(e) => updateField("fullName", e.target.value)}
-                  className="w-full h-12 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition"
+                  disabled={!isEditingProfile}
+                  className={`w-full h-12 rounded-xl border px-4 text-sm outline-none transition ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
 
@@ -562,8 +606,9 @@ function ProfilePage() {
                   value={profile.headline}
                   maxLength={150}
                   onChange={(e) => updateField("headline", e.target.value)}
+                  disabled={!isEditingProfile}
                   placeholder="e.g. Frontend Engineer"
-                  className="w-full h-12 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition"
+                  className={`w-full h-12 rounded-xl border px-4 text-sm outline-none transition ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
 
@@ -572,7 +617,8 @@ function ProfilePage() {
                   value={profile.location}
                   maxLength={150}
                   onChange={(e) => updateField("location", e.target.value)}
-                  className="w-full h-12 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition"
+                  disabled={!isEditingProfile}
+                  className={`w-full h-12 rounded-xl border px-4 text-sm outline-none transition ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
 
@@ -581,8 +627,9 @@ function ProfilePage() {
                   value={profile.bio}
                   maxLength={1000}
                   onChange={(e) => updateField("bio", e.target.value)}
+                  disabled={!isEditingProfile}
                   rows={3}
-                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 py-3 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition resize-none"
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition resize-none ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
 
@@ -592,8 +639,9 @@ function ProfilePage() {
                   value={profile.linkedInUrl}
                   maxLength={500}
                   onChange={(e) => updateField("linkedInUrl", e.target.value)}
+                  disabled={!isEditingProfile}
                   placeholder="https://www.linkedin.com/in/your-name"
-                  className="w-full h-12 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition"
+                  className={`w-full h-12 rounded-xl border px-4 text-sm outline-none transition ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
 
@@ -603,8 +651,9 @@ function ProfilePage() {
                   value={profile.gitHubUrl}
                   maxLength={500}
                   onChange={(e) => updateField("gitHubUrl", e.target.value)}
+                  disabled={!isEditingProfile}
                   placeholder="https://github.com/your-username"
-                  className="w-full h-12 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition"
+                  className={`w-full h-12 rounded-xl border px-4 text-sm outline-none transition ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
 
@@ -614,8 +663,9 @@ function ProfilePage() {
                   value={profile.portfolioUrl}
                   maxLength={500}
                   onChange={(e) => updateField("portfolioUrl", e.target.value)}
+                  disabled={!isEditingProfile}
                   placeholder="https://your-portfolio.com"
-                  className="w-full h-12 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition"
+                  className={`w-full h-12 rounded-xl border px-4 text-sm outline-none transition ${isEditingProfile ? "border-neutral-200 bg-neutral-50/70 focus:bg-white focus:border-violet-400 focus:ring-4 focus:ring-violet-100" : "border-neutral-200 bg-neutral-100/70 text-neutral-600 cursor-default"}`}
                 />
               </Field>
             </div>
@@ -627,30 +677,47 @@ function ProfilePage() {
               </div>
             )}
 
-            <div className="mt-6 flex items-center gap-3">
-              <button
-                onClick={handleSaveProfile}
-                disabled={isSaving}
-                className="h-11 px-5 rounded-xl bg-neutral-900 text-white text-sm font-semibold flex items-center gap-2 hover:bg-neutral-800 active:scale-[0.99] transition disabled:opacity-60"
-              >
-                {isSaving && <Loader2 size={15} className="animate-spin" />}
-                Save changes
-              </button>
+            {(isEditingProfile || saved) && (
+              <div className="mt-6 flex items-center gap-3">
+                {isEditingProfile && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSaveProfile}
+                      disabled={isSaving}
+                      className="h-11 px-5 rounded-xl bg-neutral-900 text-white text-sm font-semibold flex items-center gap-2 hover:bg-neutral-800 active:scale-[0.99] transition disabled:opacity-60"
+                    >
+                      {isSaving && <Loader2 size={15} className="animate-spin" />}
+                      Save changes
+                    </button>
 
-              {saved && (
-                <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
-                  <CircleCheck size={15} />
-                  Saved
-                </span>
-              )}
-            </div>
+                    <button
+                      type="button"
+                      onClick={cancelProfileEdit}
+                      disabled={isSaving}
+                      className="h-11 px-5 rounded-xl border border-neutral-200 bg-white text-neutral-700 text-sm font-semibold hover:bg-neutral-50 active:scale-[0.99] transition disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+
+                {saved && !isEditingProfile && (
+                  <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                    <CircleCheck size={15} />
+                    Saved
+                  </span>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* ================= EDUCATION ================= */}
+        <div className="space-y-6">
+          {/* ================= EDUCATION ================= */}
 
-      <div className="mt-6 rounded-2xl border border-white/70 bg-white/75 backdrop-blur-2xl shadow-xl shadow-neutral-200/30 p-6 max-w-2xl">
+          <div className="rounded-2xl border border-white/70 bg-white/75 backdrop-blur-2xl shadow-xl shadow-neutral-200/30 p-6">
         <SectionHeader
           icon={GraduationCap}
           title="Education"
@@ -697,9 +764,9 @@ function ProfilePage() {
         )}
       </div>
 
-      {/* ================= WORK EXPERIENCE ================= */}
+          {/* ================= WORK EXPERIENCE ================= */}
 
-      <div className="mt-6 rounded-2xl border border-white/70 bg-white/75 backdrop-blur-2xl shadow-xl shadow-neutral-200/30 p-6 max-w-2xl">
+          <div className="rounded-2xl border border-white/70 bg-white/75 backdrop-blur-2xl shadow-xl shadow-neutral-200/30 p-6">
         <SectionHeader
           icon={BriefcaseBusiness}
           title="Work experience"
@@ -744,6 +811,8 @@ function ProfilePage() {
             )}
           </div>
         )}
+          </div>
+        </div>
       </div>
 
       {/* ================= CV UPLOAD ================= */}

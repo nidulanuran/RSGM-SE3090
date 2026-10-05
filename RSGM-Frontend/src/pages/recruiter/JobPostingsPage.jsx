@@ -58,11 +58,20 @@ function emptyForm() {
     currency: "LKR",
     applicationDeadline: defaultDeadline(),
     skillIds: [],
+    skillWeights: {},
   };
 }
 
 function toPayload(form) {
   const hasSalary = form.minSalary !== "" || form.maxSalary !== "";
+
+  const skillWeights = Object.fromEntries(
+    form.skillIds.map((skillId) => [
+      skillId,
+      Number(form.skillWeights?.[skillId] ?? 1),
+    ])
+  );
+
   return {
     ...form,
     minExperienceYears: form.employmentType === "Internship" ||
@@ -70,6 +79,7 @@ function toPayload(form) {
     minSalary: form.minSalary === "" ? null : Number(form.minSalary),
     maxSalary: form.maxSalary === "" ? null : Number(form.maxSalary),
     currency: hasSalary ? form.currency.trim().toUpperCase() : null,
+    skillWeights,
   };
 }
 
@@ -158,6 +168,12 @@ function JobPostingsPage() {
       currency: posting.currency ?? "LKR",
       applicationDeadline: posting.applicationDeadline ?? "",
       skillIds: posting.requiredSkills.map((skill) => skill.id),
+      skillWeights: Object.fromEntries(
+        posting.requiredSkills.map((skill) => [
+          skill.id,
+          Number(skill.weight ?? 1),
+        ])
+      ),
     });
     setShowForm(true);
     setError("");
@@ -211,12 +227,29 @@ function JobPostingsPage() {
   };
 
   const toggleSkill = (skillId) => {
-    setForm((current) => ({
-      ...current,
-      skillIds: current.skillIds.includes(skillId)
-        ? current.skillIds.filter((id) => id !== skillId)
-        : [...current.skillIds, skillId],
-    }));
+    setForm((current) => {
+      const selected = current.skillIds.includes(skillId);
+
+      if (selected) {
+        const nextWeights = { ...current.skillWeights };
+        delete nextWeights[skillId];
+
+        return {
+          ...current,
+          skillIds: current.skillIds.filter((id) => id !== skillId),
+          skillWeights: nextWeights,
+        };
+      }
+
+      return {
+        ...current,
+        skillIds: [...current.skillIds, skillId],
+        skillWeights: {
+          ...current.skillWeights,
+          [skillId]: 1,
+        },
+      };
+    });
   };
 
   const changeEmploymentType = (employmentType) => {
@@ -365,20 +398,71 @@ function JobPostingsPage() {
           </div>
 
           <div className="mt-5">
-            <p className="text-sm font-medium text-neutral-600">Required skills</p>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <p className="text-sm font-medium text-neutral-600">Required skills *</p>
+            <p className="mt-1 text-xs text-neutral-400">
+              Select at least one active skill and assign its importance for candidate matching.
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {skills.map((skill) => {
                 const selected = form.skillIds.includes(skill.id);
+
                 return (
-                  <button key={skill.id} type="button" onClick={() => toggleSkill(skill.id)}
+                  <button
+                    key={skill.id}
+                    type="button"
+                    onClick={() => toggleSkill(skill.id)}
                     className={`px-3 py-1.5 rounded-full border text-xs font-medium ${selected
                       ? "border-blue-500 bg-blue-50 text-blue-600"
-                      : "border-neutral-200 text-neutral-500"}`}>
+                      : "border-neutral-200 text-neutral-500"}`}
+                  >
                     {skill.name}
                   </button>
                 );
               })}
             </div>
+
+            {form.skillIds.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {form.skillIds.map((skillId) => {
+                  const skill = skills.find((item) => item.id === skillId);
+                  if (!skill) return null;
+
+                  return (
+                    <div
+                      key={skill.id}
+                      className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <span className="text-sm font-medium text-neutral-700">
+                        {skill.name}
+                      </span>
+
+                      <label className="flex items-center gap-2 text-xs text-neutral-400">
+                        Weight
+                        <input
+                          type="number"
+                          min="0.01"
+                          max="100"
+                          step="0.01"
+                          required
+                          value={form.skillWeights?.[skill.id] ?? 1}
+                          onChange={(event) =>
+                            setForm((current) => ({
+                              ...current,
+                              skillWeights: {
+                                ...current.skillWeights,
+                                [skill.id]: event.target.value,
+                              },
+                            }))
+                          }
+                          className="w-24 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                        />
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <button disabled={saving}
@@ -424,7 +508,7 @@ function JobPostingsPage() {
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {posting.requiredSkills.map((skill) => (
                   <span key={skill.id} className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs">
-                    {skill.name}
+                    {skill.name} · {Number(skill.weight ?? 1).toFixed(2)}
                   </span>
                 ))}
               </div>

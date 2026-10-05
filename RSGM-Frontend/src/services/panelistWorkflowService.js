@@ -15,6 +15,39 @@ async function call(path, method = "GET", body) {
 export const getSentShortlists = () => call("/recruiter/shortlists");
 export const sendShortlist = (jobId, panelistId) => call(`/recruiter/jobs/${jobId}/send-shortlist`, "POST", { panelistId });
 export const getPanelistShortlists = () => call("/panelist/shortlists");
+export const getShortlistedCandidate = (applicationId) =>
+  call(`/panelist/shortlists/applications/${applicationId}/candidate`);
+
+export async function downloadShortlistedCandidateCv(
+  applicationId,
+  fallbackName = "candidate-cv"
+) {
+  const response = await fetch(
+    `${base}/api/hiring/panelist/shortlists/applications/${applicationId}/cv`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  if (!response.ok) {
+    const details = await response.json().catch(() => null);
+
+    throw new Error(details?.message || "CV is unavailable.");
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fallbackName || "candidate-cv";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
 export const getHrManagers = (jobId) => call(`/panelist/jobs/${jobId}/hr-managers`);
 export const getAvailableSlots = (jobId, hrManagerId) => call(`/panelist/jobs/${jobId}/slots?hrManagerId=${encodeURIComponent(hrManagerId)}`);
 export const getBusyTimes = () => call("/busy-times");

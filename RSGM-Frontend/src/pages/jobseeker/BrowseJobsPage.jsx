@@ -43,8 +43,8 @@ function BrowseJobsPage() {
   const [expandedJobId, setExpandedJobId] =
     useState(null);
 
-  const [appliedJobIds, setAppliedJobIds] =
-    useState(new Set());
+  const [applicationByJobId, setApplicationByJobId] =
+    useState(new Map());
 
   const [applyingJobId, setApplyingJobId] =
     useState(null);
@@ -63,18 +63,13 @@ function BrowseJobsPage() {
 
         setJobs(postings);
 
-        setAppliedJobIds(
-          new Set(
-            applications
-              .filter(
-                (application) =>
-                  application.status !== "Withdrawn"
-              )
-              .map(
-                (application) =>
-                  application.jobPostingId
-              )
-          )
+        setApplicationByJobId(
+          new Map(
+            applications.map((application) => [
+              application.jobPostingId,
+              application,
+            ]),
+          ),
         );
       })
       .catch((requestError) => {
@@ -123,12 +118,19 @@ function BrowseJobsPage() {
     setApplyingJobId(jobId);
 
     try {
-      await applyToJob(jobId);
+      const createdApplication =
+        await applyToJob(jobId);
 
-      setAppliedJobIds(
-        (previous) =>
-          new Set(previous).add(jobId)
-      );
+      setApplicationByJobId((previous) => {
+        const next = new Map(previous);
+
+        next.set(
+          createdApplication.jobPostingId ?? jobId,
+          createdApplication,
+        );
+
+        return next;
+      });
     } catch (requestError) {
       setError(
         requestError.message ||
@@ -204,8 +206,8 @@ function BrowseJobsPage() {
       ) : (
         <div className="mt-6 space-y-4">
           {filteredJobs.map((job) => {
-            const applied =
-              appliedJobIds.has(job.id);
+            const existingApplication =
+              applicationByJobId.get(job.id);
 
             const isApplying =
               applyingJobId === job.id;
@@ -343,14 +345,10 @@ function BrowseJobsPage() {
                       Details
                     </button>
 
-                    {applied ? (
-                      <span className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-emerald-50 text-emerald-600 text-sm font-semibold">
-                        <CheckCircle2
-                          size={14}
-                        />
-
-                        Applied
-                      </span>
+                    {existingApplication ? (
+                      <ApplicationStatusBadge
+                        status={existingApplication.status}
+                      />
                     ) : (
                       <button
                         type="button"
@@ -412,6 +410,64 @@ function BrowseJobsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// =========================================================
+// APPLICATION STATUS BADGE
+// =========================================================
+
+function ApplicationStatusBadge({ status }) {
+  const config = {
+    UnderReview: {
+      label: "Applied",
+      className: "bg-emerald-50 text-emerald-600",
+      icon: true,
+    },
+    Shortlisted: {
+      label: "Shortlisted",
+      className: "bg-violet-50 text-violet-600",
+      icon: true,
+    },
+    Interview: {
+      label: "Interview",
+      className: "bg-blue-50 text-blue-600",
+      icon: true,
+    },
+    Offer: {
+      label: "Offer",
+      className: "bg-amber-50 text-amber-700",
+      icon: true,
+    },
+    Rejected: {
+      label: "Rejected",
+      className: "bg-red-50 text-red-600",
+      icon: false,
+    },
+    Withdrawn: {
+      label: "Withdrawn",
+      className: "bg-neutral-100 text-neutral-500",
+      icon: false,
+    },
+  };
+
+  const current =
+    config[status] ?? {
+      label: status || "Applied",
+      className: "bg-neutral-100 text-neutral-600",
+      icon: false,
+    };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-semibold ${current.className}`}
+    >
+      {current.icon && (
+        <CheckCircle2 size={14} />
+      )}
+
+      {current.label}
+    </span>
   );
 }
 

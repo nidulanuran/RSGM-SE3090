@@ -40,6 +40,12 @@ public class RecruiterApplicantDto
 
     public int MatchScore { get; set; }
 
+    public decimal ExactMatchScore { get; set; }
+
+    public string MatchExplanation { get; set; } = string.Empty;
+
+    public List<RecruiterSkillMatchBreakdownDto> MatchBreakdown { get; set; } = new();
+
     public List<string> Skills { get; set; } = new();
 
     public List<string> MatchedSkills { get; set; } = new();
@@ -49,6 +55,23 @@ public class RecruiterApplicantDto
     public List<string> Education { get; set; } = new();
 
     public List<string> WorkExperience { get; set; } = new();
+}
+
+public class RecruiterSkillMatchBreakdownDto
+{
+    public Guid SkillId { get; set; }
+
+    public string SkillName { get; set; } = string.Empty;
+
+    public decimal RequiredWeight { get; set; }
+
+    public int? CandidateProficiency { get; set; }
+
+    public string? ProficiencyLabel { get; set; }
+
+    public decimal ContributionPercentage { get; set; }
+
+    public bool Matched { get; set; }
 }
 
 public class ReviewApplicantRequest

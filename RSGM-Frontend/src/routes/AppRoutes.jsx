@@ -12,13 +12,13 @@ import AdminCompaniesPage from "../pages/admin/AdminCompaniesPage";
 import AdminAuditLogsPage from "../pages/admin/AdminAuditLogsPage";
 import AdminWorkflowsPage from "../pages/admin/AdminWorkflowsPage";
 import AdminStatsPage from "../pages/admin/AdminStatsPage";
-import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
 
 import RecruiterLayout from "../layouts/RecruiterLayout";
 import RecruiterDashboardPage from "../pages/recruiter/RecruiterDashboardPage";
 import RequisitionsPage from "../pages/recruiter/RequisitionsPage";
 import JobPostingsPage from "../pages/recruiter/JobPostingsPage";
 import ApplicationsPage from "../pages/recruiter/ApplicationsPage";
+import SkillMatchingShortlistingAgentPage from "../pages/recruiter/SkillMatchingShortlistingAgentPage";
 import CandidateMatchingPage from "../pages/recruiter/CandidateMatchingPage";
 import ShortlistsPage from "../pages/recruiter/ShortlistsPage";
 import InterviewsPage from "../pages/recruiter/InterviewsPage";
@@ -40,6 +40,7 @@ import ProfilePage from "../pages/jobseeker/ProfilePage";
 import BrowseJobsPage from "../pages/jobseeker/BrowseJobsPage";
 import MyApplicationsPage from "../pages/jobseeker/MyApplicationsPage";
 import MyOffersPage from "../pages/jobseeker/MyOffersPage";
+import AiCareerAssistantPage from "../pages/jobseeker/AiCareerAssistantPage";
 import NotificationsPage from "../pages/common/NotificationsPage";
 
 import PanelistLayout from "../layouts/PanelistLayout";
@@ -73,7 +74,6 @@ function AppRoutes() {
         <Route path="audit-logs" element={<AdminAuditLogsPage />} />
         <Route path="workflows" element={<AdminWorkflowsPage />} />
         <Route path="stats" element={<AdminStatsPage />} />
-        <Route path="settings" element={<AdminSettingsPage />} />
         <Route path="notifications" element={<NotificationsPage role="admin" />} />
       </Route>
 
@@ -90,6 +90,7 @@ function AppRoutes() {
         <Route path="requisitions" element={<RequisitionsPage />} />
         <Route path="postings" element={<JobPostingsPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="ai-shortlisting" element={<SkillMatchingShortlistingAgentPage />} />
         <Route path="matching" element={<CandidateMatchingPage />} />
         <Route path="shortlists" element={<ShortlistsPage />} />
         <Route path="schedule" element={<AvailabilityPage />} />
@@ -130,6 +131,7 @@ function AppRoutes() {
         <Route index element={<JobSeekerDashboardPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="browse" element={<BrowseJobsPage />} />
+        <Route path="ai-career" element={<AiCareerAssistantPage />} />
         <Route path="applications" element={<MyApplicationsPage />} />
         <Route path="interviews" element={<JobSeekerInterviewsPage />} />
         <Route path="offers" element={<MyOffersPage />} />

@@ -10,6 +10,8 @@ public class ApplicationResponse
 
     public string Company { get; set; } = string.Empty;
 
+    public string? CompanyLogoUrl { get; set; }
+
     public string Status { get; set; } = string.Empty;
 
     public DateTime AppliedAt { get; set; }

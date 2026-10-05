@@ -62,7 +62,7 @@ export default function InterviewsPage() {
       <div><span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600"><Sparkles size={12} />RECRUITER WORKSPACE</span>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Interviews & offers</h1>
         <p className="mt-2 text-neutral-500">Track panelist interviews and draft offers after a positive recommendation.</p>
-        <p className="mt-1 text-sm text-blue-700">Weekday office hours: 9:00 AM–5:00 PM (Asia/Colombo). Interviews last one hour; latest start is 4:00 PM.</p></div>
+        <p className="mt-1 text-sm text-blue-700">Weekday office hours: 8:00 AM–5:00 PM (Asia/Colombo). Interviews last one hour; latest start is 4:00 PM.</p></div>
 
     </div>
     {error && <p role="alert" className="mt-5 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"><AlertCircle size={16} />{error}</p>}

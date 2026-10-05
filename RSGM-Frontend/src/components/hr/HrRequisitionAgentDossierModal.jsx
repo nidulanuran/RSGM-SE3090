@@ -3,15 +3,12 @@ import {
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  XCircle,
   Clock,
   ShieldCheck,
   Cpu,
   Layers,
   Award,
-  ChevronRight,
   X,
-  Send,
 } from "lucide-react";
 
 export default function HrRequisitionAgentDossierModal({
@@ -24,9 +21,12 @@ export default function HrRequisitionAgentDossierModal({
   const [decisionComment, setDecisionComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  if (!isOpen || !workflow) return null;
+  if (!isOpen || !workflow) {
+    return null;
+  }
 
   let outcome = null;
+
   if (workflow.finalOutcome) {
     try {
       outcome = JSON.parse(workflow.finalOutcome);
@@ -35,140 +35,203 @@ export default function HrRequisitionAgentDossierModal({
     }
   }
 
-  const score = outcome?.ReadinessScore ?? outcome?.readinessScore ?? 0;
-  const strengths = outcome?.Strengths ?? outcome?.strengths ?? [];
-  const risks = outcome?.Risks ?? outcome?.risks ?? outcome?.IdentifiedRisks ?? [];
-  const recommendedSkills = outcome?.RecommendedSkills ?? outcome?.recommendedSkills ?? outcome?.SuggestedSkills ?? [];
-  const executiveSummary = outcome?.ExecutiveSummary ?? outcome?.executiveSummary ?? workflow.objective;
-  const recommendation = outcome?.Recommendation ?? outcome?.recommendation ?? outcome?.RecommendationForApprover ?? "";
+  const score =
+    outcome?.ReadinessScore ??
+    outcome?.readinessScore ??
+    0;
+
+  const strengths =
+    outcome?.Strengths ??
+    outcome?.strengths ??
+    [];
+
+  const risks =
+    outcome?.Risks ??
+    outcome?.risks ??
+    outcome?.IdentifiedRisks ??
+    [];
+
+  const recommendedSkills =
+    outcome?.RecommendedSkills ??
+    outcome?.recommendedSkills ??
+    outcome?.SuggestedSkills ??
+    [];
+
+  const executiveSummary =
+    outcome?.ExecutiveSummary ??
+    outcome?.executiveSummary ??
+    workflow.objective;
+
+  const recommendation =
+    outcome?.Recommendation ??
+    outcome?.recommendation ??
+    outcome?.RecommendationForApprover ??
+    "";
+
   const steps = workflow.steps || [];
 
-  const isPendingApproval = workflow.status === "WaitingForApproval";
+  const isPendingApproval =
+    workflow.status === "WaitingForApproval";
 
   const handleAction = async (decisionCode) => {
-    if (!onDecision) return;
+    if (!onDecision) {
+      return;
+    }
+
     setSubmitting(true);
+
     try {
-      await onDecision(decisionCode, decisionComment);
+      await onDecision(
+        decisionCode,
+        decisionComment
+      );
+
       onClose();
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getScoreColor = (s) => {
-    if (s >= 80) return "text-emerald-600 bg-emerald-50 border-emerald-200";
-    if (s >= 50) return "text-amber-600 bg-amber-50 border-amber-200";
-    return "text-red-600 bg-red-50 border-red-200";
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl border border-slate-200 flex flex-col">
-        {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur-md border-b border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
+      <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/90 px-6 py-4 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm">
               <Cpu size={20} />
             </div>
+
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
                   HR Function Agent
                 </span>
+
                 <span className="text-xs font-medium text-slate-500">
                   Job Posting & Requisition Specialist
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 mt-0.5">
+
+              <h2 className="mt-0.5 text-lg font-bold text-slate-900">
                 AI Readiness & Approval Dossier
               </h2>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6 flex-1">
-          {/* Top Score Banner */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-indigo-950 text-white shadow-lg">
-            <div className="space-y-2 max-w-lg">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs text-indigo-200 font-medium">
+        <div className="flex-1 space-y-6 p-6">
+          <div className="flex flex-col items-center justify-between gap-6 rounded-2xl bg-linear-to-br from-slate-900 to-indigo-950 p-6 text-white shadow-lg sm:flex-row">
+            <div className="max-w-lg space-y-2">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-indigo-200">
                 <Sparkles size={13} />
                 Automated Readiness Assessment
               </div>
+
               <h3 className="text-xl font-bold leading-tight">
-                {outcome?.PositionTitle || "Requisition Readiness"}
+                {outcome?.PositionTitle ||
+                  "Requisition Readiness"}
               </h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
+
+              <p className="text-sm leading-relaxed text-slate-300">
                 {executiveSummary}
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 min-w-[130px]">
+            <div className="flex min-w-32.5 flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md">
               <span className="text-3xl font-extrabold tracking-tight text-emerald-400">
                 {score}
-                <span className="text-base font-normal text-slate-300">/100</span>
+                <span className="text-base font-normal text-slate-300">
+                  /100
+                </span>
               </span>
-              <span className="text-xs font-medium text-slate-300 mt-1 uppercase tracking-wider">
+
+              <span className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-300">
                 Readiness Score
               </span>
             </div>
           </div>
 
-          {/* Recommendations & Advisories */}
           {recommendation && (
-            <div className="p-4 rounded-2xl border border-indigo-100 bg-indigo-50/70 text-indigo-900 flex items-start gap-3">
-              <ShieldCheck size={20} className="text-indigo-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 text-indigo-900">
+              <ShieldCheck
+                size={20}
+                className="mt-0.5 shrink-0 text-indigo-600"
+              />
+
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
                   Agent Recommendation
                 </p>
-                <p className="text-sm font-medium mt-0.5">{recommendation}</p>
+
+                <p className="mt-0.5 text-sm font-medium">
+                  {recommendation}
+                </p>
               </div>
             </div>
           )}
 
-          {/* Strengths & Risks Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-5">
               <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
                 <CheckCircle2 size={16} />
-                <span>Verified Strengths ({strengths.length})</span>
+                <span>
+                  Verified Strengths ({strengths.length})
+                </span>
               </div>
+
               <ul className="space-y-2">
-                {strengths.map((str, idx) => (
-                  <li key={idx} className="text-xs text-slate-700 flex items-start gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                    <span>{str}</span>
+                {strengths.map((strength, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-xs text-slate-700"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                    <span>{strength}</span>
                   </li>
                 ))}
+
                 {strengths.length === 0 && (
-                  <li className="text-xs text-slate-400 italic">No specific strengths documented.</li>
+                  <li className="text-xs italic text-slate-400">
+                    No specific strengths documented.
+                  </li>
                 )}
               </ul>
             </div>
 
-            <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-5">
               <div className="flex items-center gap-2 text-sm font-semibold text-amber-700">
                 <AlertTriangle size={16} />
-                <span>Risks & Advisories ({risks.length})</span>
+
+                <span>
+                  Risks & Advisories ({risks.length})
+                </span>
               </div>
+
               <ul className="space-y-2">
-                {risks.map((risk, idx) => (
-                  <li key={idx} className="text-xs text-slate-700 flex items-start gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                {risks.map((risk, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-xs text-slate-700"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
                     <span>{risk}</span>
                   </li>
                 ))}
+
                 {risks.length === 0 && (
-                  <li className="text-xs text-slate-500 flex items-center gap-1.5">
-                    <CheckCircle2 size={14} className="text-emerald-500" />
+                  <li className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <CheckCircle2
+                      size={14}
+                      className="text-emerald-500"
+                    />
                     No critical risk flags identified.
                   </li>
                 )}
@@ -176,78 +239,117 @@ export default function HrRequisitionAgentDossierModal({
             </div>
           </div>
 
-          {/* Suggested Skills & Competencies */}
           {recommendedSkills.length > 0 && (
-            <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3 shadow-sm">
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <Award size={16} className="text-indigo-600" />
-                  <span>AI Recommended Competencies for Job Posting</span>
+                  <Award
+                    size={16}
+                    className="text-indigo-600"
+                  />
+
+                  <span>
+                    AI Recommended Competencies for Job Posting
+                  </span>
                 </div>
+
                 <span className="text-xs text-slate-400">
                   Auto-mapped from system skill catalog
                 </span>
               </div>
+
               <div className="flex flex-wrap gap-2 pt-1">
-                {recommendedSkills.map((sk, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-indigo-100 bg-indigo-50/50 text-indigo-900 text-xs font-medium"
-                  >
-                    <span>{sk.SkillName || sk.skillName}</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-indigo-200/60 text-[10px] font-bold text-indigo-800">
-                      W: {sk.Weight || sk.weight || 1.0}
-                    </span>
-                  </div>
-                ))}
+                {recommendedSkills.map(
+                  (skill, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50/50 px-3 py-1.5 text-xs font-medium text-indigo-900"
+                    >
+                      <span>
+                        {skill.SkillName ||
+                          skill.skillName}
+                      </span>
+
+                      <span className="rounded-md bg-indigo-200/60 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800">
+                        W:{" "}
+                        {skill.Weight ??
+                          skill.weight ??
+                          1.0}
+                      </span>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
 
-          {/* Execution Steps Trace */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/40 space-y-3">
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/40 p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <Layers size={16} className="text-slate-600" />
-                <span>Allow-Listed Tool Execution Trace</span>
+                <Layers
+                  size={16}
+                  className="text-slate-600"
+                />
+
+                <span>
+                  Allow-Listed Tool Execution Trace
+                </span>
               </div>
+
               <span className="text-xs font-medium text-slate-500">
-                Status: <span className="font-semibold text-slate-800">{workflow.status}</span>
+                Status:{" "}
+                <span className="font-semibold text-slate-800">
+                  {workflow.status}
+                </span>
               </span>
             </div>
 
             <div className="space-y-2">
-              {steps.map((st) => (
+              {steps.map((step) => (
                 <div
-                  key={st.id || st.stepNumber}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border border-slate-200 bg-white text-xs shadow-xs"
+                  key={
+                    step.id ||
+                    step.stepNumber
+                  }
+                  className="flex flex-col justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-xs sm:flex-row sm:items-center"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px]">
-                      {st.stepNumber}
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-700">
+                      {step.stepNumber}
                     </span>
-                    <span className="font-semibold text-slate-800 font-mono text-[11px]">
-                      {st.toolName}
+
+                    <span className="font-mono text-[11px] font-semibold text-slate-800">
+                      {step.toolName}
                     </span>
-                    <span className="text-slate-400 hidden sm:inline">•</span>
-                    <span className="text-slate-600 truncate max-w-sm">
-                      {st.outputSummary || st.inputSummary}
+
+                    <span className="hidden text-slate-400 sm:inline">
+                      •
+                    </span>
+
+                    <span className="max-w-sm truncate text-slate-600">
+                      {step.outputSummary ||
+                        step.inputSummary}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                    <span className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
-                      <Clock size={11} /> {st.durationMs}ms
+
+                  <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
+                    <span className="flex items-center gap-1 font-mono text-[11px] text-slate-400">
+                      <Clock size={11} />
+                      {step.durationMs}ms
                     </span>
+
                     <span
-                      className={`px-2 py-0.5 rounded-md font-semibold text-[10px] ${
-                        st.validationStatus === "Passed"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : st.validationStatus === "Warning"
-                          ? "bg-amber-50 text-amber-700 border border-amber-200"
-                          : "bg-red-50 text-red-700 border border-red-200"
+                      className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${
+                        step.validationStatus ===
+                        "Passed"
+                          ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : step.validationStatus ===
+                              "Warning"
+                            ? "border border-amber-200 bg-amber-50 text-amber-700"
+                            : "border border-red-200 bg-red-50 text-red-700"
                       }`}
                     >
-                      {st.validationStatus}
+                      {step.validationStatus}
                     </span>
                   </div>
                 </div>
@@ -255,62 +357,82 @@ export default function HrRequisitionAgentDossierModal({
             </div>
           </div>
 
-          {/* Mandatory Human Approval Gate Controls (for HR Manager) */}
-          {isHrManager && isPendingApproval && (
-            <div className="p-5 rounded-2xl border-2 border-indigo-200 bg-indigo-50/40 space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-indigo-950">
-                <ShieldCheck size={18} className="text-indigo-600" />
-                <span>Human-in-the-Loop Approval Gate</span>
-              </div>
-              <p className="text-xs text-indigo-900/80">
-                In compliance with platform rules, high-impact actions require your explicit authorization.
-                Select your decision below:
-              </p>
+          {isHrManager &&
+            isPendingApproval && (
+              <div className="space-y-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50/40 p-5">
+                <div className="flex items-center gap-2 text-sm font-bold text-indigo-950">
+                  <ShieldCheck
+                    size={18}
+                    className="text-indigo-600"
+                  />
 
-              <textarea
-                value={decisionComment}
-                onChange={(e) => setDecisionComment(e.target.value)}
-                placeholder="Optional feedback or decision rationale..."
-                className="w-full text-xs p-3 rounded-xl border border-indigo-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-                rows={2}
-              />
+                  <span>
+                    Human-in-the-Loop Approval Gate
+                  </span>
+                </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleAction(2)} // Rejected
-                  className="px-4 py-2 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold hover:bg-red-100 transition-colors"
-                >
-                  Reject Requisition
-                </button>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleAction(3)} // RevisionRequested
-                  className="px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-xs font-semibold hover:bg-amber-100 transition-colors"
-                >
-                  Request Revision
-                </button>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleAction(1)} // Approved
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
-                >
-                  <CheckCircle2 size={14} />
-                  Authorize & Approve
-                </button>
+                <p className="text-xs text-indigo-900/80">
+                  In compliance with platform rules,
+                  high-impact actions require your explicit
+                  authorization. Select your decision below:
+                </p>
+
+                <textarea
+                  value={decisionComment}
+                  onChange={(e) =>
+                    setDecisionComment(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Optional feedback or decision rationale..."
+                  className="w-full rounded-xl border border-indigo-200 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  rows={2}
+                />
+
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() =>
+                      handleAction(2)
+                    }
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Reject Requisition
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() =>
+                      handleAction(3)
+                    }
+                    className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Request Revision
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() =>
+                      handleAction(1)
+                    }
+                    className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <CheckCircle2 size={14} />
+                    Authorize & Approve
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+        <div className="flex items-center justify-end border-t border-slate-100 bg-slate-50 px-6 py-4">
           <button
+            type="button"
             onClick={onClose}
-            className="px-5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors shadow-xs"
+            className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-100"
           >
             Close Dossier
           </button>

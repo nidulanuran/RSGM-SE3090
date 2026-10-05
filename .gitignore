@@ -6,8 +6,9 @@ obj/
 .vs/
 *.user
 *.suo
+.vscode/
 
-# Rider
+# Rider / IntelliJ
 .idea/
 
 # Development configuration
@@ -16,19 +17,43 @@ appsettings.Development.json
 # Environment variables
 .env
 .env.*
+agent-service/.venv/
 
 # Node
 node_modules/
 dist/
 
-# Flutter
+# Flutter / Dart
 .dart_tool/
+.packages
+.pub/
+build/
+coverage/
+
 .flutter-plugins
 .flutter-plugins-dependencies
-build/
+
+# Flutter generated platform files
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# Android signing files
+*.jks
+*.keystore
+
+# iOS / macOS generated files
+**/ios/Pods/
+**/macos/Pods/
+**/ios/.symlinks/
+**/macos/.symlinks/
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Application data
 App_Data/

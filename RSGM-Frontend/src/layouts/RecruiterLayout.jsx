@@ -13,6 +13,7 @@ import {
   Shield,
   Users,
   X,
+  Bot,
 } from "lucide-react";
 
 import Brand from "../components/common/Brand";
@@ -48,6 +49,12 @@ const NAV_ITEMS = [
     to: "/recruiter/matching",
     label: "Candidate Matching",
     icon: ScanSearch,
+  },
+
+  {
+    to: "/recruiter/ai-shortlisting",
+    label: "AI Shortlisting Agent",
+    icon: Bot,
   },
   {
     to: "/recruiter/shortlists",
@@ -237,10 +244,9 @@ function SidebarLink({
       end={end}
       onClick={onClick}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
-          isActive
-            ? "bg-neutral-900 text-white shadow-sm"
-            : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+        `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${isActive
+          ? "bg-neutral-900 text-white shadow-sm"
+          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
         }`
       }
     >

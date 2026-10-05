@@ -8,10 +8,12 @@ public class CreateRecruiterJobRequest
     public Guid JobRequisitionId { get; set; }
 
     [Required]
+    [MinLength(2)]
     [MaxLength(150)]
     public string Title { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(2)]
     [MaxLength(150)]
     public string Location { get; set; } = string.Empty;
 
@@ -22,14 +24,17 @@ public class CreateRecruiterJobRequest
     public string WorkMode { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(10)]
     [MaxLength(2000)]
     public string Description { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(10)]
     [MaxLength(3000)]
     public string Responsibilities { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(10)]
     [MaxLength(3000)]
     public string Requirements { get; set; } = string.Empty;
 
@@ -53,4 +58,8 @@ public class CreateRecruiterJobRequest
     public DateOnly? ApplicationDeadline { get; set; }
 
     public List<Guid> SkillIds { get; set; } = new();
+
+    // Optional weight per required skill.
+    // Skills not present in this dictionary use weight 1.0.
+    public Dictionary<Guid, decimal>? SkillWeights { get; set; }
 }

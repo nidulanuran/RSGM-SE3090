@@ -16,4 +16,14 @@ public class AdminDashboardStatsResponse
     public int PublishedJobPostings { get; set; }
 
     public int TotalApplications { get; set; }
+
+    public List<AdminDashboardCountItem> UsersByRole { get; set; } = new();
+    public List<AdminDashboardCountItem> ApplicationsByStatus { get; set; } = new();
+    public List<AdminDashboardCountItem> JobPostingsByStatus { get; set; } = new();
+}
+
+public class AdminDashboardCountItem
+{
+    public string Label { get; set; } = string.Empty;
+    public int Count { get; set; }
 }

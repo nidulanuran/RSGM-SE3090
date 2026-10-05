@@ -11,8 +11,6 @@ import {
   XCircle,
   Sparkles,
   Bot,
-  ShieldCheck,
-  Cpu,
 } from "lucide-react";
 
 import {

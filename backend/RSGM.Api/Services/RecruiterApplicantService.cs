@@ -11,7 +11,9 @@ public enum RecruiterReviewResult
     NotFound,
     InvalidStatus,
     Locked,
-    InvalidRanking
+    InvalidRanking,
+    ShortlistLimitReached,
+    ShortlistAlreadySent
 }
 
 public class RecruiterApplicantService
@@ -23,8 +25,10 @@ public class RecruiterApplicantService
         _db = db;
     }
 
-    private IQueryable<Application> OwnedApplications(Guid recruiterId) =>
-        _db.Applications.Where(a =>
+    private IQueryable<Application> OwnedApplications(
+        Guid recruiterId)
+    {
+        return _db.Applications.Where(a =>
             a.JobPosting.CreatedByUserId == recruiterId &&
             a.JobPosting.CompanyId != null &&
             a.JobPosting.CompanyEntity != null &&
@@ -33,6 +37,7 @@ public class RecruiterApplicantService
                 m.UserId == recruiterId &&
                 m.IsActive &&
                 m.CompanyId == a.JobPosting.CompanyId));
+    }
 
     public async Task<List<RecruiterApplicantDto>> GetMineAsync(
         Guid recruiterId,
@@ -40,11 +45,13 @@ public class RecruiterApplicantService
     {
         var query = OwnedApplications(recruiterId)
             .AsNoTracking()
-            .Where(a => a.Status != ApplicationStatus.Withdrawn);
+            .Where(a =>
+                a.Status != ApplicationStatus.Withdrawn);
 
         if (jobId.HasValue)
         {
-            query = query.Where(a => a.JobPostingId == jobId.Value);
+            query = query.Where(
+                a => a.JobPostingId == jobId.Value);
         }
 
         var applications = await query
@@ -57,7 +64,7 @@ public class RecruiterApplicantService
 
         if (applications.Count == 0)
         {
-            return new();
+            return new List<RecruiterApplicantDto>();
         }
 
         var userIds = applications
@@ -77,21 +84,27 @@ public class RecruiterApplicantService
             .Where(s => userIds.Contains(s.UserId))
             .ToListAsync())
             .GroupBy(s => s.UserId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
 
         var education = (await _db.EducationRecords
             .AsNoTracking()
             .Where(e => userIds.Contains(e.UserId))
             .ToListAsync())
             .GroupBy(e => e.UserId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
 
         var experience = (await _db.WorkExperiences
             .AsNoTracking()
             .Where(e => userIds.Contains(e.UserId))
             .ToListAsync())
             .GroupBy(e => e.UserId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
 
         var cvs = (await _db.JobSeekerCvs
             .AsNoTracking()
@@ -99,48 +112,50 @@ public class RecruiterApplicantService
             .ToListAsync())
             .ToDictionary(c => c.UserId);
 
-        return applications.Select(a =>
+        return applications.Select(application =>
         {
-            profiles.TryGetValue(a.UserId, out var profile);
-            skills.TryGetValue(a.UserId, out var candidateSkills);
-            education.TryGetValue(a.UserId, out var candidateEducation);
-            experience.TryGetValue(a.UserId, out var candidateExperience);
-            cvs.TryGetValue(a.UserId, out var cv);
+            profiles.TryGetValue(
+                application.UserId,
+                out var profile);
 
-            var names = candidateSkills?
+            skills.TryGetValue(
+                application.UserId,
+                out var candidateSkills);
+
+            education.TryGetValue(
+                application.UserId,
+                out var candidateEducation);
+
+            experience.TryGetValue(
+                application.UserId,
+                out var candidateExperience);
+
+            cvs.TryGetValue(
+                application.UserId,
+                out var cv);
+
+            candidateSkills ??= new List<JobSeekerSkill>();
+
+            var skillNames = candidateSkills
                 .Select(s => s.Skill.Name)
                 .Distinct()
-                .OrderBy(n => n)
-                .ToList() ?? new List<string>();
-
-            var candidateSkillIds = candidateSkills?
-                .Select(s => s.SkillId)
-                .ToHashSet() ?? new HashSet<Guid>();
-
-            var required = a.JobPosting.RequiredSkills.ToList();
-
-            var matched = required
-                .Where(s => candidateSkillIds.Contains(s.SkillId))
-                .Select(s => s.Skill.Name)
-                .OrderBy(n => n)
+                .OrderBy(name => name)
                 .ToList();
 
-            var missing = required
-                .Where(s => !candidateSkillIds.Contains(s.SkillId))
-                .Select(s => s.Skill.Name)
-                .OrderBy(n => n)
-                .ToList();
+            var match = SkillMatchingEngine.Calculate(
+                application.JobPosting.RequiredSkills,
+                candidateSkills);
 
             return new RecruiterApplicantDto
             {
-                Id = a.Id,
-                JobPostingId = a.JobPostingId,
-                JobTitle = a.JobPosting.Title,
-                CandidateId = a.UserId,
+                Id = application.Id,
+                JobPostingId = application.JobPostingId,
+                JobTitle = application.JobPosting.Title,
+                CandidateId = application.UserId,
 
-                FullName = a.User.FullName,
-                Email = a.User.Email ?? string.Empty,
-                PhoneNumber = a.User.PhoneNumber,
+                FullName = application.User.FullName,
+                Email = application.User.Email ?? string.Empty,
+                PhoneNumber = application.User.PhoneNumber,
 
                 Headline = profile?.Headline,
                 Location = profile?.Location,
@@ -152,30 +167,89 @@ public class RecruiterApplicantService
                 HasCv = cv != null,
                 CvFileName = cv?.FileName,
 
-                Status = a.Status.ToString(),
-                ShortlistRank = a.ShortlistRank,
-                AppliedAt = a.AppliedAt,
+                Status = application.Status.ToString(),
+                ShortlistRank = application.ShortlistRank,
+                AppliedAt = application.AppliedAt,
 
-                MatchScore = required.Count == 0
-                    ? 100
-                    : (int)Math.Round(
-                        matched.Count * 100.0 / required.Count),
+                MatchScore = match.Score,
+                ExactMatchScore = match.ExactScore,
+                MatchExplanation = match.Explanation,
 
-                Skills = names,
-                MatchedSkills = matched,
-                MissingSkills = missing,
+                MatchBreakdown = match.Breakdown
+                    .Select(item =>
+                        new RecruiterSkillMatchBreakdownDto
+                        {
+                            SkillId = item.SkillId,
+                            SkillName = item.SkillName,
+                            RequiredWeight = item.RequiredWeight,
+                            CandidateProficiency =
+                                item.CandidateProficiency,
+                            ProficiencyLabel =
+                                item.ProficiencyLabel,
+                            ContributionPercentage =
+                                item.ContributionPercentage,
+                            Matched = item.Matched
+                        })
+                    .ToList(),
+
+                Skills = skillNames,
+                MatchedSkills = match.MatchedSkills,
+                MissingSkills = match.MissingSkills,
 
                 Education = candidateEducation?
                     .OrderByDescending(e => e.StartDate)
-                    .Select(e => $"{e.Degree} — {e.Institution}")
-                    .ToList() ?? new(),
+                    .Select(e =>
+                        $"{e.Degree} — {e.Institution}")
+                    .ToList() ?? new List<string>(),
 
                 WorkExperience = candidateExperience?
                     .OrderByDescending(e => e.StartDate)
-                    .Select(e => $"{e.JobTitle} — {e.CompanyName}")
-                    .ToList() ?? new()
+                    .Select(e =>
+                        $"{e.JobTitle} — {e.CompanyName}")
+                    .ToList() ?? new List<string>()
             };
         }).ToList();
+    }
+
+    public async Task<(
+        bool Found,
+        List<RecruiterApplicantDto> Applicants)>
+        GetMatchingAsync(
+            Guid recruiterId,
+            Guid jobId)
+    {
+        var ownsJob = await _db.JobPostings.AnyAsync(job =>
+            job.Id == jobId &&
+            job.CreatedByUserId == recruiterId &&
+            job.CompanyId != null &&
+            job.CompanyEntity != null &&
+            job.CompanyEntity.IsActive &&
+            _db.CompanyMembers.Any(member =>
+                member.UserId == recruiterId &&
+                member.IsActive &&
+                member.CompanyId == job.CompanyId));
+
+        if (!ownsJob)
+        {
+            return (
+                false,
+                new List<RecruiterApplicantDto>());
+        }
+
+        var applicants = await GetMineAsync(
+            recruiterId,
+            jobId);
+
+        var eligibleApplicants = applicants
+            .Where(item =>
+                item.Status == ApplicationStatus.UnderReview.ToString() ||
+                item.Status == ApplicationStatus.Shortlisted.ToString())
+            .OrderByDescending(item => item.ExactMatchScore)
+            .ThenByDescending(item => item.MatchScore)
+            .ThenBy(item => item.AppliedAt)
+            .ToList();
+
+        return (true, eligibleApplicants);
     }
 
     public async Task<(
@@ -194,39 +268,98 @@ public class RecruiterApplicantService
                 ApplicationStatus.Shortlisted or
                 ApplicationStatus.Rejected))
         {
-            return (RecruiterReviewResult.InvalidStatus, null);
+            return (
+                RecruiterReviewResult.InvalidStatus,
+                null);
         }
 
         var application = await OwnedApplications(recruiterId)
-            .FirstOrDefaultAsync(a => a.Id == applicationId);
+            .FirstOrDefaultAsync(
+                a => a.Id == applicationId);
 
         if (application == null)
         {
-            return (RecruiterReviewResult.NotFound, null);
+            return (
+                RecruiterReviewResult.NotFound,
+                null);
         }
 
         if (application.Status is
             ApplicationStatus.Withdrawn or
             ApplicationStatus.Interview or
-            ApplicationStatus.Offer)
+            ApplicationStatus.Offer or
+            ApplicationStatus.Hired or
+            ApplicationStatus.OfferDeclined)
         {
-            return (RecruiterReviewResult.Locked, null);
+            return (
+                RecruiterReviewResult.Locked,
+                null);
         }
 
         var jobId = application.JobPostingId;
+
+        var shortlistAlreadySent =
+            await _db.ShortlistDispatches.AnyAsync(
+                dispatch =>
+                    dispatch.JobPostingId == jobId);
+
+        if (shortlistAlreadySent)
+        {
+            return (
+                RecruiterReviewResult.ShortlistAlreadySent,
+                null);
+        }
+
+        var job = await _db.JobPostings
+            .Include(item => item.JobRequisition)
+            .FirstOrDefaultAsync(item =>
+                item.Id == jobId);
+
+        if (job == null)
+        {
+            return (
+                RecruiterReviewResult.NotFound,
+                null);
+        }
+
+        if (status == ApplicationStatus.Shortlisted &&
+            !application.ShortlistRank.HasValue &&
+            job.JobRequisition != null &&
+            job.JobRequisition.Headcount > 0)
+        {
+            var shortlistedCount =
+                await OwnedApplications(recruiterId)
+                    .CountAsync(a =>
+                        a.JobPostingId == jobId &&
+                        a.Status ==
+                            ApplicationStatus.Shortlisted);
+
+            if (shortlistedCount >=
+                job.JobRequisition.Headcount)
+            {
+                return (
+                    RecruiterReviewResult.ShortlistLimitReached,
+                    null);
+            }
+        }
+
         application.Status = status;
 
         if (status == ApplicationStatus.Shortlisted)
         {
             if (!application.ShortlistRank.HasValue)
             {
-                var currentMax = await OwnedApplications(recruiterId)
-                    .Where(a =>
-                        a.JobPostingId == jobId &&
-                        a.Status == ApplicationStatus.Shortlisted)
-                    .MaxAsync(a => (int?)a.ShortlistRank) ?? 0;
+                var currentMax =
+                    await OwnedApplications(recruiterId)
+                        .Where(a =>
+                            a.JobPostingId == jobId &&
+                            a.Status ==
+                                ApplicationStatus.Shortlisted)
+                        .MaxAsync(
+                            a => (int?)a.ShortlistRank) ?? 0;
 
-                application.ShortlistRank = currentMax + 1;
+                application.ShortlistRank =
+                    currentMax + 1;
             }
         }
         else
@@ -238,13 +371,21 @@ public class RecruiterApplicantService
 
         if (status != ApplicationStatus.Shortlisted)
         {
-            await CompactRanksAsync(recruiterId, jobId);
+            await CompactRanksAsync(
+                recruiterId,
+                jobId);
         }
 
-        var result = (await GetMineAsync(recruiterId, jobId))
-            .FirstOrDefault(a => a.Id == applicationId);
+        var result =
+            (await GetMineAsync(
+                recruiterId,
+                jobId))
+            .FirstOrDefault(
+                item => item.Id == applicationId);
 
-        return (RecruiterReviewResult.Success, result);
+        return (
+            RecruiterReviewResult.Success,
+            result);
     }
 
     public async Task<RecruiterReviewResult> RankAsync(
@@ -252,40 +393,57 @@ public class RecruiterApplicantService
         Guid jobId,
         List<Guid>? orderedIds)
     {
-        var ownsJob = await _db.JobPostings.AnyAsync(j =>
-            j.Id == jobId &&
-            j.CreatedByUserId == recruiterId &&
-            j.CompanyId != null &&
-            j.CompanyEntity != null &&
-            j.CompanyEntity.IsActive &&
-            _db.CompanyMembers.Any(m =>
-                m.UserId == recruiterId &&
-                m.IsActive &&
-                m.CompanyId == j.CompanyId));
+        var ownsJob = await _db.JobPostings.AnyAsync(job =>
+            job.Id == jobId &&
+            job.CreatedByUserId == recruiterId &&
+            job.CompanyId != null &&
+            job.CompanyEntity != null &&
+            job.CompanyEntity.IsActive &&
+            _db.CompanyMembers.Any(member =>
+                member.UserId == recruiterId &&
+                member.IsActive &&
+                member.CompanyId == job.CompanyId));
 
         if (!ownsJob)
         {
             return RecruiterReviewResult.NotFound;
         }
 
+        var alreadySent =
+            await _db.ShortlistDispatches.AnyAsync(
+                dispatch =>
+                    dispatch.JobPostingId == jobId);
+
+        if (alreadySent)
+        {
+            return RecruiterReviewResult.ShortlistAlreadySent;
+        }
+
         var candidates = await OwnedApplications(recruiterId)
-            .Where(a =>
-                a.JobPostingId == jobId &&
-                a.Status == ApplicationStatus.Shortlisted)
+            .Where(application =>
+                application.JobPostingId == jobId &&
+                application.Status ==
+                    ApplicationStatus.Shortlisted)
             .ToListAsync();
 
         if (orderedIds == null ||
             orderedIds.Count != candidates.Count ||
             orderedIds.Distinct().Count() != candidates.Count ||
-            !candidates.All(a => orderedIds.Contains(a.Id)))
+            !candidates.All(
+                application =>
+                    orderedIds.Contains(application.Id)))
         {
             return RecruiterReviewResult.InvalidRanking;
         }
 
-        for (var i = 0; i < orderedIds.Count; i++)
+        for (var index = 0;
+             index < orderedIds.Count;
+             index++)
         {
-            candidates.First(a => a.Id == orderedIds[i])
-                .ShortlistRank = i + 1;
+            candidates.First(
+                application =>
+                    application.Id == orderedIds[index])
+                .ShortlistRank = index + 1;
         }
 
         await _db.SaveChangesAsync();
@@ -297,25 +455,33 @@ public class RecruiterApplicantService
         Guid recruiterId,
         Guid applicationId) =>
         OwnedApplications(recruiterId)
-            .FirstOrDefaultAsync(a =>
-                a.Id == applicationId &&
-                a.Status != ApplicationStatus.Withdrawn);
+            .FirstOrDefaultAsync(application =>
+                application.Id == applicationId &&
+                application.Status !=
+                    ApplicationStatus.Withdrawn);
 
-    private async Task CompactRanksAsync(Guid recruiterId, Guid jobId)
+    private async Task CompactRanksAsync(
+        Guid recruiterId,
+        Guid jobId)
     {
         var candidates = await OwnedApplications(recruiterId)
-            .Where(a =>
-                a.JobPostingId == jobId &&
-                a.Status == ApplicationStatus.Shortlisted)
-            .OrderBy(a => a.ShortlistRank)
-            .ThenBy(a => a.AppliedAt)
+            .Where(application =>
+                application.JobPostingId == jobId &&
+                application.Status ==
+                    ApplicationStatus.Shortlisted)
+            .OrderBy(application => application.ShortlistRank)
+            .ThenBy(application => application.AppliedAt)
             .ToListAsync();
 
-        for (var i = 0; i < candidates.Count; i++)
+        for (var index = 0;
+             index < candidates.Count;
+             index++)
         {
-            candidates[i].ShortlistRank = i + 1;
+            candidates[index].ShortlistRank =
+                index + 1;
         }
 
         await _db.SaveChangesAsync();
     }
 }
+

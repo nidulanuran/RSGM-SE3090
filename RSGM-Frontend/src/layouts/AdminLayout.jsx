@@ -13,7 +13,6 @@ import {
   ListChecks,
   LogOut,
   Menu,
-  Settings,
   Shield,
   Users,
   Workflow,
@@ -63,11 +62,6 @@ const NAV_ITEMS = [
     to: "/admin/stats",
     label: "Statistics",
     icon: BarChart3,
-  },
-  {
-    to: "/admin/settings",
-    label: "Settings",
-    icon: Settings,
   },
 ];
 
