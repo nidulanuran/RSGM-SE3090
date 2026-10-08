@@ -98,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 42),
                 const InfoPill(text: 'WELCOME BACK'),
                 const SizedBox(height: 16),
-                Text('Sign in to RSGM', style: Theme.of(context).textTheme.headlineMedium),
+                Text('Sign in to Hireon', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 10),
                 Text('Access your account and continue managing your recruitment workflow.', style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 26),
@@ -160,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('New to RSGM? ', style: TextStyle(color: AppTheme.muted, fontSize: 13)),
+                            const Text('New to Hireon? ', style: TextStyle(color: AppTheme.muted, fontSize: 13)),
                             TextButton(
                               onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
                               child: const Text('Create account', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.violet)),

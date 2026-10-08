@@ -75,7 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 34),
                 const InfoPill(text: 'CREATE ACCOUNT'),
                 const SizedBox(height: 16),
-                Text('Join RSGM', style: Theme.of(context).textTheme.headlineMedium),
+                Text('Join Hireon', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 10),
                 Text('Create your account and start using the recruitment and skill-gap matching platform.', style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 24),

@@ -136,8 +136,8 @@ function AuthShell({
                   text-5xl
                   xl:text-6xl
                   font-semibold
-                  tracking-[-0.05em]
-                  leading-[1]
+                  tracking-tighter
+                  leading-none
                 "
               >
                 Hire smarter.
@@ -222,7 +222,7 @@ function AuthShell({
 
                   <div>
                     <p className="text-xs text-neutral-400">
-                      RSGM PLATFORM
+                      HIREON PLATFORM
                     </p>
 
                     <p className="mt-1 text-sm font-semibold">

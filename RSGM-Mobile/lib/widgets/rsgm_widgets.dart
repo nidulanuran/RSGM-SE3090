@@ -19,7 +19,7 @@ class RsgmBrand extends StatelessWidget {
           ),
           alignment: Alignment.center,
           child: Text(
-            'R',
+            'H',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w800,
@@ -29,7 +29,7 @@ class RsgmBrand extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Text(
-          'RSGM',
+          'Hireon',
           style: TextStyle(
             color: AppTheme.ink,
             fontSize: compact ? 18 : 20,

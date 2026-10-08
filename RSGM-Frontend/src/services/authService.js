@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
- * Register new RSGM user.
+ * Register new Hireon user.
  */
 export async function registerUser(registerData) {
   const response = await fetch(
@@ -29,7 +29,7 @@ export async function registerUser(registerData) {
 }
 
 /**
- * Login existing RSGM user.
+ * Login existing Hireon user.
  */
 export async function loginUser(loginData) {
   const response = await fetch(

@@ -44,7 +44,7 @@ class JobMatchingAgent:
         prompt = ChatPromptTemplate.from_messages([
             (
                 "system",
-                """You are the RSGM Job Matching Agent.
+                """You are the Hireon Job Matching Agent.
 The numeric scores and matched/missing skills were calculated by deterministic code and MUST NOT be changed.
 Write a short evidence-based explanation for each supplied job using only the supplied profile analysis and match facts.
 Do not claim unrecorded skills or experience. Return structured output only."""

@@ -12,7 +12,7 @@ class RsgmApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'RSGM',
+      title: 'Hireon',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       home: const HomePage(),

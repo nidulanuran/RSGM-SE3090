@@ -1,14 +1,4 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConfig {
-  static String get baseUrl {
-    if (kIsWeb) {
-      // Flutter Web
-      return 'http://localhost:5248/api';
-    }
-
-    // Physical Android phone connected using:
-    // adb reverse tcp:5248 tcp:5248
-    return 'http://localhost:5248/api';
-  }
+  static const String baseUrl =
+      'https://hireon-api-j8mz.onrender.com/api';
 }

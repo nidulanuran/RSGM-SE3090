@@ -15,7 +15,7 @@ env_path = Path(__file__).resolve().parent.parent / ".env"
 
 load_dotenv(dotenv_path=env_path)
 
-app = FastAPI(title="RSGM Internal Application Agent")
+app = FastAPI(title="Hireon Internal Application Agent")
 
 def require_service_key(x_agent_service_key: str | None = Header(default=None)) -> None:
     configured = os.getenv("RSGM_AGENT_SERVICE_KEY", "")

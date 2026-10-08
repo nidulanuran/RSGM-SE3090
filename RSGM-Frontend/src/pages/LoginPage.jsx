@@ -132,7 +132,7 @@ function LoginPage() {
 
   return (
     <AuthShell
-      title="Sign in to RSGM"
+      title="Sign in to Hireon"
       subtitle="Access your account and continue managing your recruitment workflow."
     >
       <form
@@ -241,7 +241,7 @@ function LoginPage() {
 
         <div className="relative flex justify-center">
           <span className="bg-white px-4 text-xs text-neutral-400">
-            NEW TO RSGM?
+            NEW TO HIREON?
           </span>
         </div>
       </div>

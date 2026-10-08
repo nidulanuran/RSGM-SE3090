@@ -88,11 +88,11 @@ function LandingPage() {
               className="relative z-10 flex items-center gap-3 group"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-neutral-900/90 text-white flex items-center justify-center font-bold text-sm shadow-md transition-transform duration-300 group-hover:scale-105">
-                R
+                H
               </div>
 
               <span className="font-semibold tracking-tight text-lg text-neutral-900 drop-shadow-xs">
-                RSGM
+                Hireon
               </span>
             </Link>
 
@@ -272,7 +272,7 @@ function LandingPage() {
 
               {/* DESCRIPTION */}
               <p className="mt-7 max-w-130 text-base sm:text-lg text-neutral-500 leading-relaxed">
-                RSGM connects job requirements with candidate skills to make
+                Hireon connects job requirements with candidate skills to make
                 recruitment smarter, faster and more transparent.
               </p>
 
@@ -607,7 +607,7 @@ function LandingPage() {
             </h2>
 
             <p className="mt-5 text-neutral-500 leading-relaxed">
-              RSGM brings the important parts of the recruitment process
+              Hireon brings the important parts of the recruitment process
               together in one simple platform.
             </p>
 
@@ -673,7 +673,7 @@ function LandingPage() {
       </section>
 
       {/* =========================================================
-          WHY RSGM
+          WHY HIREON
       ========================================================= */}
       <section
         id="about"
@@ -688,7 +688,7 @@ function LandingPage() {
             <div>
 
               <p className="text-xs sm:text-sm text-violet-600 font-semibold">
-                WHY RSGM
+                WHY HIREON
               </p>
 
               <h2 className="mt-4 text-4xl sm:text-5xl font-semibold tracking-tight">
@@ -701,7 +701,7 @@ function LandingPage() {
               </h2>
 
               <p className="mt-6 text-neutral-500 leading-relaxed max-w-xl">
-                RSGM helps recruitment teams understand how well candidates
+                Hireon helps recruitment teams understand how well candidates
                 match job requirements while providing useful skill-gap
                 feedback throughout the process.
               </p>
@@ -940,7 +940,7 @@ function LandingPage() {
             <div className="relative max-w-2xl">
 
               <p className="text-sm text-white/70 font-semibold">
-                RSGM
+                Hireon
               </p>
 
               <h2 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-white">
@@ -992,11 +992,11 @@ function LandingPage() {
             >
 
               <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-sm">
-                R
+                H
               </div>
 
               <span className="font-semibold">
-                RSGM
+                Hireon
               </span>
 
             </Link>
@@ -1008,7 +1008,7 @@ function LandingPage() {
 
             {/* COPYRIGHT */}
             <p className="text-sm text-neutral-400">
-              © 2026 RSGM
+              © 2026 Hireon
             </p>
 
           </div>

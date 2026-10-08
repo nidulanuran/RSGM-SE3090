@@ -27,7 +27,7 @@ final _mockRequisitions = [
   {
     'id': 'req-1',
     'companyId': 'comp-1',
-    'companyName': 'RSGM Technologies',
+    'companyName': 'Hireon Technologies',
     'recruiterId': 'rec-1',
     'recruiterName': 'Recruiter One',
     'positionTitle': 'Senior Data Engineer',
@@ -153,7 +153,7 @@ void main() {
 
       // Requisition 1
       expect(find.text('Senior Data Engineer'), findsOneWidget);
-      expect(find.text('Analytics & Data • RSGM Technologies'), findsOneWidget);
+      expect(find.text('Analytics & Data • Hireon Technologies'), findsOneWidget);
       expect(find.text('Colombo • Hybrid'), findsOneWidget);
       expect(find.text('Full-Time • Senior'), findsOneWidget);
       expect(find.text('Submitted'), findsWidgets);

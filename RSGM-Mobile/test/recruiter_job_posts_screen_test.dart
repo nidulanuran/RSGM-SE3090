@@ -27,7 +27,7 @@ final _mockJobPosts = [
   {
     'id': 'job-1',
     'title': 'Software Engineer',
-    'company': 'RSGM Technologies',
+    'company': 'Hireon Technologies',
     'location': 'Colombo',
     'employmentType': 'FullTime',
     'workMode': 'Hybrid',
@@ -150,7 +150,7 @@ void main() {
 
       // Check card 1
       expect(find.text('Software Engineer'), findsOneWidget);
-      expect(find.text('RSGM Technologies'), findsOneWidget);
+      expect(find.text('Hireon Technologies'), findsOneWidget);
       expect(find.text('Colombo • Hybrid'), findsOneWidget);
       expect(find.text('Full-Time • Mid Level'), findsOneWidget);
       expect(find.text('Published'), findsWidgets);

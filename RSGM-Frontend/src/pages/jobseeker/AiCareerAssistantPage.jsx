@@ -106,7 +106,7 @@ function AiCareerAssistantPage() {
             Your agentic job search
           </h1>
           <p className="mt-2 max-w-2xl text-neutral-500">
-            RSGM plans the task, analyses your recorded profile, ranks published jobs,
+            Hireon plans the task, analyses your recorded profile, ranks published jobs,
             validates the result, and stops before applying until you approve.
           </p>
         </div>

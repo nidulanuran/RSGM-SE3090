@@ -188,7 +188,7 @@ function RegisterPage() {
   return (
     <AuthShell
       badge="CREATE ACCOUNT"
-      title="Join RSGM"
+      title="Join Hireon"
       subtitle="Create your account and start using the recruitment and skill-gap matching platform."
     >
 

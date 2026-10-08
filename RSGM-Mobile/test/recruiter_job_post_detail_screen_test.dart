@@ -27,7 +27,7 @@ class MockHttpClient extends http.BaseClient {
 final _fullJobJson = {
   'id': 'job-detail-1',
   'title': 'Senior Systems Architect',
-  'company': 'RSGM Enterprise',
+  'company': 'Hireon Enterprise',
   'location': 'Colombo',
   'employmentType': 'FullTime',
   'workMode': 'Hybrid',
@@ -77,7 +77,7 @@ void main() {
 
       // Header
       expect(find.text('Senior Systems Architect'), findsOneWidget);
-      expect(find.text('RSGM Enterprise'), findsOneWidget);
+      expect(find.text('Hireon Enterprise'), findsOneWidget);
       expect(find.text('Colombo'), findsOneWidget);
       expect(find.text('Published'), findsOneWidget);
       expect(find.text('Full-Time'), findsOneWidget);

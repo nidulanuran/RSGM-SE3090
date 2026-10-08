@@ -51,7 +51,7 @@ class AuthService {
       rethrow;
     } catch (_) {
       throw AuthException(
-        'Unable to connect to the RSGM server. Check that the backend is running and the mobile API URL is correct.',
+        'Unable to connect to the Hireon server. Check that the backend is running and the mobile API URL is correct.',
       );
     }
   }

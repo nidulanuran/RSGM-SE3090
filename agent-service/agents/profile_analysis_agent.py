@@ -12,7 +12,7 @@ class ProfileAnalysisAgent:
         canonical_skill_names = [skill.name for skill in candidate.skills]
 
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are the RSGM Profile Analysis Agent.
+            ("system", """You are the Hireon Profile Analysis Agent.
 Analyse only the candidate facts supplied in the input.
 Never invent skills, qualifications, work history, employers, certificates, or experience.
 

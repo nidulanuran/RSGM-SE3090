@@ -60,7 +60,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check AppBar branding and role badge
-      expect(find.text('RSGM'), findsOneWidget);
+      expect(find.text('Hireon'), findsOneWidget);
       expect(find.text('Recruiter'), findsOneWidget);
       expect(find.byIcon(Icons.logout_rounded), findsOneWidget);
 

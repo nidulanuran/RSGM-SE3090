@@ -8,7 +8,7 @@ from app.schemas import ReadinessRequest, ReadinessResponse
 from career_schemas import CareerWorkflowRequest, CareerWorkflowResponse
 from graph.career_workflow import run_career_workflow
 
-app = FastAPI(title="RSGM Internal Application Agent")
+app = FastAPI(title="Hireon Internal Application Agent")
 
 
 def require_service_key(x_agent_service_key: str | None = Header(default=None)) -> None:

@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/api_config.dart';
 
-/// Centralized HTTP API client for authenticated communication with the RSGM backend.
+/// Centralized HTTP API client for authenticated communication with the Hireon backend.
 class ApiClient {
   ApiClient({http.Client? httpClient, this.overrideToken})
       : _httpClient = httpClient ?? http.Client();
@@ -99,7 +99,7 @@ class ApiClient {
     } catch (_) {
       throw const ApiException(
         message:
-            'Unable to connect to the RSGM server. Check your connection and ensure the backend is running.',
+            'Unable to connect to the Hireon server. Check your connection and ensure the backend is running.',
       );
     }
   }
@@ -126,7 +126,7 @@ class ApiClient {
     } catch (_) {
       throw const ApiException(
         message:
-            'Unable to connect to the RSGM server. Check your connection and ensure the backend is running.',
+            'Unable to connect to the Hireon server. Check your connection and ensure the backend is running.',
       );
     }
   }
@@ -199,7 +199,7 @@ class ApiClient {
     } catch (_) {
       throw const ApiException(
         message:
-            'Unable to connect to the RSGM server. Check your connection and ensure the backend is running.',
+            'Unable to connect to the Hireon server. Check your connection and ensure the backend is running.',
       );
     }
   }
@@ -226,7 +226,7 @@ class ApiClient {
     } catch (_) {
       throw const ApiException(
         message:
-            'Unable to connect to the RSGM server. Check your connection and ensure the backend is running.',
+            'Unable to connect to the Hireon server. Check your connection and ensure the backend is running.',
       );
     }
   }
@@ -253,7 +253,7 @@ class ApiClient {
     } catch (_) {
       throw const ApiException(
         message:
-            'Unable to connect to the RSGM server. Check your connection and ensure the backend is running.',
+            'Unable to connect to the Hireon server. Check your connection and ensure the backend is running.',
       );
     }
   }

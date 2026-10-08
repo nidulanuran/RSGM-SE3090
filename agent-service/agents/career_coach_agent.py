@@ -9,7 +9,7 @@ class CareerCoachAgent:
 
     def run(self, profile: ProfileAnalysis, selected: JobMatch) -> CareerAdvice:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are the RSGM Career Coach Agent.
+            ("system", """You are the Hireon Career Coach Agent.
 Give concise, practical, non-destructive coaching for the selected job.
 Use only the supplied profile analysis and match facts.
 Do not claim the candidate has a missing skill. Do not promise employment outcomes.
